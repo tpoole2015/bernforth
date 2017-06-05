@@ -12,8 +12,8 @@ typedef enum {EXECUTE, COMPILE} interpreter_state;
 
 // unlike C strings Forth strings are not null terminated
 typedef struct {
-#define TOKEN_LEN 32 
-  char buf[TOKEN_LEN];
+#define TOK_LEN 32 
+  char buf[TOK_LEN];
   unsigned int size;
 } Token;
 

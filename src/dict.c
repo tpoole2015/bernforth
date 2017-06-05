@@ -1,6 +1,19 @@
 #include "dict.h"
 #include "tok.h"
+#include <stdio.h>
+#include <unistd.h>
 #include <assert.h>
+
+boolean dict_init(Dictionary *d)
+{
+  d->here = (cell *)malloc(DICT_INIT_SIZE_CELLS * sizeof(cell));
+  if (!d->here) {
+    fprintf(stderr, "Error allocating memory for dictionary.\n");
+    return FALSE;
+  }
+  d->latest = NULL;
+  d->cells_remaining = DICT_INIT_SIZE_CELLS;
+}
 
 Word *dict_get_word(const Dictionary *d, const Token *t)
 {

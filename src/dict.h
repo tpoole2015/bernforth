@@ -3,6 +3,11 @@
 
 #include "types.h"
 
+#define DICT_INIT_SIZE_CELLS 65536
+
+// allocate the memory used by the dictionary
+boolean dict_init(Dictionary *d);
+
 // returns pointer to word with given token, NULL if word couldn't be found
 Word *dict_get_word(const Dictionary *d, const Token *t);
 
