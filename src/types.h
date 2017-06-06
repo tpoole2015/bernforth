@@ -1,7 +1,14 @@
 #ifndef BERNFORTH_TYPES_H
 #define BERNFORTH_TYPES_H
 
+#include <stdio.h>
 #include <stdint.h>
+
+#ifdef DEBUG
+#define P(x) printf(#x"\n");
+#else
+#define P(x)
+#endif
 
 typedef uintptr_t cell; // cell has to be large enough to hold the address of any variable
 
