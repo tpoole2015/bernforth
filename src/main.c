@@ -321,7 +321,7 @@ get_next_word:
     }
     case SUB: // - ( a b -- a-b )
     {
-      P(ADD)
+      P(SUB)
       POP(PS, b)
       POP(PS, a)
       PUSH(PS, a - b)
@@ -330,7 +330,7 @@ get_next_word:
     }
     case SWAP: // ( a b -- b a )
     {
-      P(ADD)
+      P(SWAP)
       POP(PS, b)
       POP(PS, a)
       PUSH(PS, b)
@@ -338,7 +338,7 @@ get_next_word:
       NEXT
       break;
     }
-    case WORD: // ( -- addr len )
+    case WORD: // ( -- addr len ) word
     {
       P(WORD)
       if (!tok_get_next(fp, &wtok)) {
@@ -349,6 +349,14 @@ get_next_word:
       NEXT
       break;
     } 
+    case ZEQU: // ( a -- !a )
+    {
+      P(ZEQU)
+      POP(PS, a)
+      PUSH(PS, !a)
+      NEXT    
+      break;
+    }
     default:
       fprintf(stderr, "ERROR: invalid command %lld\n", (int64_t)*W);
       return 1;

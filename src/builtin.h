@@ -34,7 +34,8 @@ enum {
   STORE,
   SUB,
   SWAP,
-  WORD
+  WORD,
+  ZEQU
 };
 
 void add_atomic_words(Dictionary *d);

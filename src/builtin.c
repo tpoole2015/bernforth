@@ -20,7 +20,7 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"HEX", 3}, F_NOTSET},
   {{"HIDE", 4}, F_NOTSET},
   {{"HIDDEN", 6}, F_NOTSET},
-  {{"IMMEDIATE", 9}, F_NOTSET},
+  {{"IMMEDIATE", 9}, F_IMMED},
   {{"INTERPRET", 9}, F_NOTSET},
   {{"LATEST", 6}, F_NOTSET},
   {{"[", 1}, F_IMMED}, // note the immdediate!!!
@@ -30,7 +30,8 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"!", 1}, F_NOTSET},
   {{"-", 1}, F_NOTSET},
   {{"SWAP", 4}, F_NOTSET},
-  {{"WORD", 4}, F_NOTSET}
+  {{"WORD", 4}, F_NOTSET},
+  {{"0=", 2}, F_NOTSET}
 };
 
 void add_atomic_words(Dictionary *d)
