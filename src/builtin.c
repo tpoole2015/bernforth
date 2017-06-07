@@ -8,9 +8,12 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"CREATE", 6}, F_NOTSET},
   {{",", 1}, F_NOTSET},
   {{"DECIMAL", 7}, F_NOTSET},
+  {{"/MOD", 4}, F_NOTSET},
   {{"DOCOL", 5}, F_NOTSET},
   {{".", 1}, F_NOTSET},
+  {{"DROP", 4}, F_NOTSET},
   {{"DUP", 3}, F_NOTSET},
+  {{"EMIT", 4}, F_NOTSET},
   {{"EXIT", 4}, F_NOTSET},
   {{"@", 1}, F_NOTSET},
   {{"FIND", 4}, F_NOTSET},
@@ -25,7 +28,8 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"*", 1}, F_NOTSET},
   {{"]", 1}, F_NOTSET},
   {{"!", 1}, F_NOTSET},
-  {{"SUB", 3}, F_NOTSET},
+  {{"-", 1}, F_NOTSET},
+  {{"SWAP", 4}, F_NOTSET},
   {{"WORD", 4}, F_NOTSET}
 };
 

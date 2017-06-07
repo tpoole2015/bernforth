@@ -12,9 +12,12 @@ enum {
   CREATE,
   COMMA,
   DECIMAL,
+  DIVMOD,
   DOCOL,
   DOT,
+  DROP,
   DUP,
+  EMIT,
   EXIT,
   FETCH,
   FIND,
@@ -30,6 +33,7 @@ enum {
   RBRAC,
   STORE,
   SUB,
+  SWAP,
   WORD
 };
 

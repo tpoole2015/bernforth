@@ -37,6 +37,23 @@ int main(int argc, char *argv[])
   const Token lit = {"LIT", 3};
   const cell *lit_cw_p = dict_get_word(&d, &lit)->codeword_p;
 
+  FILE *fp = stdin;
+  if (argc > 1) {
+    if ( (fp = fopen(argv[1], "r")) == NULL) {
+      fprintf(stderr, "error opening file %s\n", argv[1]);
+      fp = stdin;
+    } else 
+      printf("loading file %s\n", argv[1]);
+  }
+#define PROCESS_EOF      \
+  if (fp == stdin) {     \
+    printf("GOOD BYE\n");\
+    return 0;            \
+  }                      \
+  printf("loaded!\n");   \
+  fp = stdin;            \
+  goto main_loop;        \
+
 main_loop:
 // Every atomic word implemented has to end in NEXT
 #define NEXT      \
@@ -48,8 +65,8 @@ main_loop:
     case ADD: // + ( a b -- a+b )
     {
       P(ADD)
-      POP(PS, a)
       POP(PS, b)
+      POP(PS, a)
       PUSH(PS, a + b)
       NEXT
       break;
@@ -84,7 +101,7 @@ main_loop:
       NEXT
       break;
     }
-    case CREATE: // CREATE ( address len -- )
+    case CREATE: // CREATE ( addr len -- )
     {
       P(CREATE)
       POP(PS, a) // a = len
@@ -105,6 +122,16 @@ main_loop:
       NEXT
       break;
     }
+    case DIVMOD: // ( a b -- a%b a/b )
+    {
+      P(DIVMOD)
+      POP(PS, b)
+      POP(PS, a)
+      PUSH(PS, a%b)
+      PUSH(PS, a/b)
+      NEXT
+      break;
+    }
     case DOCOL:
     {
       P(DOCOL)
@@ -113,7 +140,7 @@ main_loop:
       NEXT
       break;
     }
-    case DOT: // (a -- )
+    case DOT: // ( a -- )
     {
       P(DOT)
       POP(PS, a)
@@ -121,11 +148,26 @@ main_loop:
       NEXT  
       break;
     }
-    case DUP: // (a -- a a)
+    case DROP: // ( a -- )
+    {
+      P(DOT)
+      POP(PS, a)
+      NEXT  
+      break;
+    }
+    case DUP: // ( a -- a a )
     {
       P(DUP)
       PEAK(PS, a)
       PUSH(PS, a)
+      NEXT
+      break;
+    }
+    case EMIT: // ( char -- )
+    {
+      P(EMIT)
+      POP(PS, a);
+      printf("\t%c\n", (char)a);
       NEXT
       break;
     }
@@ -145,7 +187,7 @@ main_loop:
       NEXT
       break;
     }
-    case FIND: // (len addr - addr)
+    case FIND: // ( len addr -- addr )
     {
       P(FIND)
       POP(PS, a); // a = addr
@@ -191,10 +233,8 @@ main_loop:
     {
       P(INTERPRET)
 get_next_word:
-      if (!tok_get_next(&itok)) {
-        // EOF
-        printf("GOOD BYE!\n");
-        return 0;
+      if (!tok_get_next(fp, &itok)) {
+        PROCESS_EOF
       }
 
       boolean islit = FALSE;
@@ -282,19 +322,27 @@ get_next_word:
     case SUB: // - ( a b -- a-b )
     {
       P(ADD)
-      POP(PS, a)
       POP(PS, b)
+      POP(PS, a)
       PUSH(PS, a - b)
+      NEXT
+      break;
+    }
+    case SWAP: // ( a b -- b a )
+    {
+      P(ADD)
+      POP(PS, b)
+      POP(PS, a)
+      PUSH(PS, b)
+      PUSH(PS, a)
       NEXT
       break;
     }
     case WORD: // ( -- addr len )
     {
       P(WORD)
-      if (!tok_get_next(&wtok)) {
-        // EOF
-        printf("GOOD BYE!\n");
-        return 0;
+      if (!tok_get_next(fp, &wtok)) {
+        PROCESS_EOF
       }
       PUSH(PS, (cell)wtok.buf)
       PUSH(PS, (cell)wtok.size)

@@ -31,13 +31,13 @@ boolean tok_tonum(const Token *t, const unsigned int base, long int *n)
   return TRUE;
 }
 
-unsigned int tok_get_next(Token *tok)
+unsigned int tok_get_next(FILE *fp, Token *tok)
 {
   read_state state = BLANK;
   char c;
 
   tok_init(tok);
-  while ((c = getc(stdin)) != EOF) {
+  while ((c = fgetc(fp)) != EOF) {
     switch (state) {
     case COMMENT: {
        if (c == '\n')
@@ -59,7 +59,7 @@ unsigned int tok_get_next(Token *tok)
     };
 
     if (state == WRITING)
-      tok->buf[tok->size++] = toupper(c);
+      tok->buf[tok->size++] = c;
   }
   return tok->size;
 }
