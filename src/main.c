@@ -93,11 +93,11 @@ main_loop:
       NEXT
       break;
     }
-    case BRANCHCOND: // ( -- )
+    case BRANCHCOND: // 0BRANCH ( a -- )
     {
       P(BRANCHCOND)
       POP(PS, a)
-      IP += a ? *IP : 1 /* skip offset */;
+      IP += a ? 1 /* skip offset */ : *IP;
       NEXT
       break;
     } 
@@ -124,12 +124,10 @@ main_loop:
       P(CREATE)
       POP(PS, a) // a = len
       POP(PS, b) // b = address
-
       WordProps p;
       p.flags = F_NOTSET;
       tok_cpy(&p.tok, (char*)b, (unsigned int)a);
       dict_append_word(&d, &p);
-
       NEXT
       break;
     }
@@ -168,7 +166,7 @@ main_loop:
     }
     case DROP: // ( a -- )
     {
-      P(DOT)
+      P(DROP)
       POP(PS, a)
       NEXT  
       break;
