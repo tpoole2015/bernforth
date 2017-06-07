@@ -137,10 +137,23 @@ main_loop:
       NEXT
       break;
     }
-    case HIDDEN: // ( -- )
+    case FETCH: // @ ( addr -- n )
     {
-      P(HIDDEN)
-      d.latest->props.flags ^= F_HIDDEN;
+      P(FETCH)
+      POP(PS, a) 
+      PUSH(PS, (cell)(*(cell*)a)) 
+      NEXT
+      break;
+    }
+    case FIND: // (len addr - addr)
+    {
+      P(FIND)
+      POP(PS, a); // a = addr
+      POP(PS, b); // b = len 
+      Token t;
+      tok_cpy(&t, (char*)b, (unsigned int)a);
+      const Word *w = dict_get_word(&d, &t);
+      PUSH(PS, (cell)w)
       NEXT
       break;
     }
@@ -148,6 +161,22 @@ main_loop:
     {
       P(HEX)
       base = 16;
+      NEXT
+      break;
+    }
+    case HIDE: // ( -- )
+    {
+      P(HIDE)
+      d.latest->props.flags ^= F_HIDDEN;
+      NEXT
+      break;
+    }
+    case HIDDEN: // ( addr -- )
+    {
+      P(HIDDEN)
+      POP(PS, a)
+      Word *w = (Word*)a;
+      w->props.flags ^= F_HIDDEN;
       NEXT
       break;
     }
@@ -210,6 +239,13 @@ get_next_word:
       NEXT  
       break;
     }
+    case LATEST: // ( -- addr )
+    {
+      P(LATEST)
+      PUSH(PS, (cell)&(d.latest))
+      NEXT
+      break;
+    }
     case LIT: // ( -- *IP )
     {
       P(LIT)
@@ -234,6 +270,15 @@ get_next_word:
       NEXT  
       break;
     }
+    case STORE: // ! ( n addr -- )
+    {
+      P(STORE)
+      POP(PS, a) // a = addr
+      POP(PS, b) // b = n
+      *(cell*)a = b;
+      NEXT
+      break;
+    }
     case SUB: // - ( a b -- a-b )
     {
       P(ADD)
@@ -243,7 +288,7 @@ get_next_word:
       NEXT
       break;
     }
-    case WORD: // ( -- adr len )
+    case WORD: // ( -- addr len )
     {
       P(WORD)
       if (!tok_get_next(&wtok)) {

@@ -12,14 +12,19 @@ static const WordProps ATOMIC_WORDS[] = {
   {{".", 1}, F_NOTSET},
   {{"DUP", 3}, F_NOTSET},
   {{"EXIT", 4}, F_NOTSET},
-  {{"HIDDEN", 6}, F_NOTSET},
+  {{"@", 1}, F_NOTSET},
+  {{"FIND", 4}, F_NOTSET},
   {{"HEX", 3}, F_NOTSET},
+  {{"HIDE", 4}, F_NOTSET},
+  {{"HIDDEN", 6}, F_NOTSET},
   {{"IMMEDIATE", 9}, F_NOTSET},
   {{"INTERPRET", 9}, F_NOTSET},
+  {{"LATEST", 6}, F_NOTSET},
   {{"[", 1}, F_IMMED}, // note the immdediate!!!
   {{"LIT", 3}, F_NOTSET},
   {{"*", 1}, F_NOTSET},
   {{"]", 1}, F_NOTSET},
+  {{"!", 1}, F_NOTSET},
   {{"SUB", 3}, F_NOTSET},
   {{"WORD", 4}, F_NOTSET}
 };
