@@ -1,6 +1,8 @@
 #include "dict.h"
 #include "tok.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <assert.h>
 
@@ -13,20 +15,21 @@ boolean dict_init(Dictionary *d)
   }
   d->latest = NULL;
   d->cells_remaining = DICT_INIT_SIZE_CELLS;
+  return TRUE;
 }
 
 Word *dict_get_word(const Dictionary *d, const Token *t)
 {
   Word *cur = d->latest;
   while (cur) {
-    if (!(cur->props.flags & F_HIDDEN) && tok_cmp(tok, &(cur->props.tok)))
-      return cur;
+    if (!(cur->props.flags & F_HIDDEN) && tok_cmp(t, &(cur->props.tok)))
+      break;
     cur = cur->prev;
   }
-  return NULL;
+  return cur;
 }
 
-Word *dict_append_word(Dictionary *d, const WordProps *props)
+void dict_append_word(Dictionary *d, const WordProps *props)
 {
 #define CELLS_PER_WORD sizeof(Word)/sizeof(cell)
   assert(d->cells_remaining > CELLS_PER_WORD);

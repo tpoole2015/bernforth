@@ -30,7 +30,7 @@ typedef struct {
   unsigned int flags;
 } WordProps;
 
-typedef struct {
+typedef struct Word {
   WordProps props;
   struct Word *prev;
   cell *codeword_p;

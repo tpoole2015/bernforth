@@ -1,5 +1,6 @@
 #include "tok.h"
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 void tok_init(Token *t)
@@ -70,13 +71,13 @@ unsigned int get_next_tok(Token *tok)
     }
     case BLANK: {
       if (c == FORTH_COMMENT)
-        state = COMMENT;;
+        state = COMMENT;
       else if (!(c == ' ' || c == '\t' || c == '\n'))
         state = WRITING;
       break;
     }
     case WRITING: {
-      if (c == ' ' || c == '\t' || c == '\n' || c == FORTH_COMMENT)
+      if (c == ' ' || c == '\t' || c == '\n')
         return tok->size; // finished reading token
       break;
     }

@@ -13,15 +13,15 @@
 
 #define PUSH(x, elem)                                \
   if (TOP_##x == SIZE_##x - 1)                       \
-    printf(stderr, "ERROR: stack " #x " overflow\n");\
+    fprintf(stderr, "ERROR: stack " #x " overflow\n");\
   else                                               \ 
-    STACK_##x[++TOP_##X] = (elem);                   \
+    STACK_##x[++TOP_##x] = (elem);                   \
 
 #define POP(x, elem)                                  \
   if (TOP_##x < 0)                                    \
-    printf(stderr, "ERROR: stack " #x " underflow\n");\
+    fprintf(stderr, "ERROR: stack " #x " underflow\n");\
   else                                                \ 
-    (elem) = STACK_##x[TOP_##X--];                    \
+    (elem) = STACK_##x[TOP_##x--];                    \
 
 #define PEAK(x, elem)         \
   (elem) = STACK_##x[TOP_##x];\

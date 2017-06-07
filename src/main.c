@@ -1,12 +1,14 @@
 #include "types.h"
+#include "builtin.h"
 #include "dict.h"
 #include "tok.h"
+#include "stack.h"
+#include <stdint.h>
+#include <string.h>
 
-// If ever I make BernForth multithreaded these variables will need to be
-// shared amongst threads.
 Dictionary d; 
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
   Token itok; // latest token read by INTERPRET
   Token wtok; // latest token read by WORD
@@ -16,20 +18,26 @@ int main(int argc, char *argv)
   unsigned int base = 10;
   interpreter_state state = EXECUTE; 
 
+#define STACK_SIZE 100
+  INIT_STACK(RS, cell, STACK_SIZE)
+  INIT_STACK(PS, cell, STACK_SIZE)
+
   if (!dict_init(&d))
     return 1;
 
+  add_atomic_words(&d);
+  add_nonatomic_words(&d);
+
   // Start by running the QUIT word
-  const Token quit = {"QUIT", 4}
+  const Token quit = {"QUIT", 4};
   IP = dict_get_word(&d, &quit)->codeword_p;
   W = IP;
   ++IP;
 
   const Token lit = {"LIT", 3};
-  const Word *litword_p = dict_get_word(&d, &lit)->codeword_p;
+  const cell *lit_cw_p = dict_get_word(&d, &lit)->codeword_p;
 
 main_loop:
-  {
 // Every atomic word implemented has to end in NEXT
 #define NEXT      \
   W = (cell*)*IP; \
@@ -97,7 +105,7 @@ main_loop:
       NEXT
       break;
     }
-    case DOCOL;
+    case DOCOL:
     {
       P(DOCOL)
       PUSH(RS, (cell)IP)
@@ -109,7 +117,7 @@ main_loop:
     {
       P(DOT)
       POP(PS, a)
-      printf("\t%lld\n" (int64_t)a);
+      printf("\t%lld\n", (int64_t)a);
       NEXT  
       break;
     }
@@ -165,8 +173,9 @@ get_next_word:
       long int n;
       if (!w) {
         // word not in dictionary
-        if (!tok_to_num(&itok, base, &n)) {
-          char str[WORD_LEN+1] = {0};
+        if (!tok_tonum(&itok, base, &n)) {
+          char str[TOK_LEN+1] = {0};
+          memcpy(str, itok.buf, itok.size);
           fprintf(stderr, "ERROR: couldn't parse %s\n", str);
           goto get_next_word;
         }
@@ -186,7 +195,7 @@ get_next_word:
 
       P(COMPILING)
       if (islit) {
-        dict_append_cell(&d, (cell)litword_p->codeword_p);
+        dict_append_cell(&d, (cell)lit_cw_p);
         dict_append_cell(&d, (cell)n);
       } else 
         dict_append_cell(&d, (cell)W);
@@ -251,7 +260,6 @@ get_next_word:
       fprintf(stderr, "ERROR: invalid command %lld\n", (int64_t)*W);
       return 1;
     };
-    goto main_loop;
-  }
+  goto main_loop;
 } 
      

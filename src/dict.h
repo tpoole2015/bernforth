@@ -12,7 +12,7 @@ boolean dict_init(Dictionary *d);
 Word *dict_get_word(const Dictionary *d, const Token *t);
 
 // append word to dictionary
-Word *dict_append_word(Dictionary *d, const WordProps *props);
+void dict_append_word(Dictionary *d, const WordProps *props);
 
 // append a cell to the dictionary
 void dict_append_cell(Dictionary *d, const cell data);
