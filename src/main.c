@@ -93,6 +93,24 @@ main_loop:
       NEXT
       break;
     }
+    case BRANCHCOND: // ( -- )
+    {
+      P(BRANCHCOND)
+      POP(PS, a)
+      IP += a ? *IP : 1 /* skip offset */;
+      NEXT
+      break;
+    } 
+    case CHAR: // ( -- char) word
+    {
+      P(WORD)
+      if (!tok_get_next(fp, &wtok)) {
+        PROCESS_EOF
+      }
+      PUSH(PS, (cell)wtok.buf[0])
+      NEXT
+      break;
+    } 
     case COMMA: // , ( a -- )
     {
       P(COMMA)
@@ -335,6 +353,14 @@ get_next_word:
       POP(PS, a)
       PUSH(PS, b)
       PUSH(PS, a)
+      NEXT
+      break;
+    }
+    case TOCFA: // >CFA ( addr -- addr )
+    {
+      P(TOCFA)
+      POP(PS, a)
+      PUSH(PS, (cell)((Word*)a)->codeword_p)
       NEXT
       break;
     }

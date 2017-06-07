@@ -5,6 +5,8 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"+", 1}, F_NOTSET},
   {{"BASE", 4}, F_NOTSET},
   {{"BRANCH", 6}, F_NOTSET},
+  {{"0BRANCH", 7}, F_NOTSET},
+  {{"CHAR", 4}, F_NOTSET},
   {{"CREATE", 6}, F_NOTSET},
   {{",", 1}, F_NOTSET},
   {{"DECIMAL", 7}, F_NOTSET},
@@ -30,6 +32,7 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"!", 1}, F_NOTSET},
   {{"-", 1}, F_NOTSET},
   {{"SWAP", 4}, F_NOTSET},
+  {{">CFA", 4}, F_NOTSET},
   {{"WORD", 4}, F_NOTSET},
   {{"0=", 2}, F_NOTSET}
 };

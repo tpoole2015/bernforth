@@ -9,6 +9,8 @@ enum {
   ADD,
   BASE,
   BRANCH,
+  BRANCHCOND,
+  CHAR,
   CREATE,
   COMMA,
   DECIMAL,
@@ -34,6 +36,7 @@ enum {
   STORE,
   SUB,
   SWAP,
+  TOCFA,
   WORD,
   ZEQU
 };
