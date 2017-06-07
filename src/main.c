@@ -162,7 +162,7 @@ main_loop:
     {
       P(INTERPRET)
 get_next_word:
-      if (!get_next_tok(&itok)) {
+      if (!tok_get_next(&itok)) {
         // EOF
         printf("GOOD BYE!\n");
         return 0;
@@ -243,10 +243,10 @@ get_next_word:
       NEXT
       break;
     }
-    case WORD: // ( -- address len )
+    case WORD: // ( -- adr len )
     {
       P(WORD)
-      if (!get_next_tok(&wtok)) {
+      if (!tok_get_next(&wtok)) {
         // EOF
         printf("GOOD BYE!\n");
         return 0;

@@ -31,38 +31,13 @@ boolean tok_tonum(const Token *t, const unsigned int base, long int *n)
   return TRUE;
 }
 
-// maybe replace with Cs getc for thread safety?
-boolean get_key(char *c)
-{
-  // not thread safe!
-  static Token t;
-  static unsigned int pos = 0; // pos where next char will be read from
-  static boolean init = FALSE;
-  if (!init) {
-    tok_init(&t);
-    init = TRUE;
-  }
-
-  // try and read char from buf
-  if (t.size && pos < t.size) {
-    *c = t.buf[pos++];
-    return TRUE;
-  }
-
-  // buf empty or we've read all chars in it
-  pos = 0;
-  t.size = read(STDIN_FILENO, t.buf, TOK_LEN);
-  return t.size ? get_key(c) : FALSE;
-}
-
-// not thread safe!
-unsigned int get_next_tok(Token *tok)
+unsigned int tok_get_next(Token *tok)
 {
   read_state state = BLANK;
   char c;
 
   tok_init(tok);
-  while (get_key(&c)) {
+  while ((c = getc(stdin)) != EOF) {
     switch (state) {
     case COMMENT: {
        if (c == '\n')
