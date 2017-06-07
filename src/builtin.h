@@ -23,6 +23,7 @@ enum {
   EXIT,
   FETCH,
   FIND,
+  HERE,
   HEX,
   HIDE,
   HIDDEN,

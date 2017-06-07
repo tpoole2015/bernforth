@@ -19,6 +19,7 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"EXIT", 4}, F_NOTSET},
   {{"@", 1}, F_NOTSET},
   {{"FIND", 4}, F_NOTSET},
+  {{"HERE", 4}, F_NOTSET},
   {{"HEX", 3}, F_NOTSET},
   {{"HIDE", 4}, F_NOTSET},
   {{"HIDDEN", 6}, F_NOTSET},

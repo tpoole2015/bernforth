@@ -103,7 +103,7 @@ main_loop:
     } 
     case CHAR: // ( -- char) word
     {
-      P(WORD)
+      P(CHAR)
       if (!tok_get_next(fp, &wtok)) {
         PROCESS_EOF
       }
@@ -214,6 +214,13 @@ main_loop:
       tok_cpy(&t, (char*)b, (unsigned int)a);
       const Word *w = dict_get_word(&d, &t);
       PUSH(PS, (cell)w)
+      NEXT
+      break;
+    }
+    case HERE: // ( -- addr )
+    {
+      P(HERE)
+      PUSH(PS, (cell)&(d.here))
       NEXT
       break;
     }
