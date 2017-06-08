@@ -1,7 +1,6 @@
-CFLAGS=-g
+CFLAGS=-g 
 CC=gcc
-OBJS=src/builtin.o\
-     src/dict.o\
+OBJS=src/dict.o\
      src/tok.o\
      src/main.o\
   

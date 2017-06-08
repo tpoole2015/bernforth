@@ -6,6 +6,7 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"BASE", 4}, F_NOTSET},
   {{"BRANCH", 6}, F_NOTSET},
   {{"0BRANCH", 7}, F_NOTSET},
+  {{"CELLSIZE", 8}, F_NOTSET},
   {{"CHAR", 4}, F_NOTSET},
   {{"CREATE", 6}, F_NOTSET},
   {{",", 1}, F_NOTSET},
@@ -19,6 +20,7 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"EXIT", 4}, F_NOTSET},
   {{"@", 1}, F_NOTSET},
   {{"FIND", 4}, F_NOTSET},
+  {{">", 1}, F_NOTSET},
   {{"HERE", 4}, F_NOTSET},
   {{"HEX", 3}, F_NOTSET},
   {{"HIDE", 4}, F_NOTSET},
@@ -29,6 +31,7 @@ static const WordProps ATOMIC_WORDS[] = {
   {{"[", 1}, F_IMMED}, // note the immdediate!!!
   {{"LIT", 3}, F_NOTSET},
   {{"*", 1}, F_NOTSET},
+  {{"OVER", 4}, F_NOTSET},
   {{"]", 1}, F_NOTSET},
   {{"!", 1}, F_NOTSET},
   {{"-", 1}, F_NOTSET},
@@ -49,41 +52,35 @@ void add_atomic_words(Dictionary *d)
 
 void add_nonatomic_words(Dictionary *d)
 {
-#define CWP(x) \
-  dict_append_cell(d, (cell)dict_get_word(d, &(ATOMIC_WORDS[x].tok))->codeword_p); \
-
-#define VAL(x) \
-  dict_append_cell(d, (cell)x); \
-
-#define LIT(x) \
-  dict_append_cell(d, (cell)dict_get_word(d, &(ATOMIC_WORDS[LIT].tok))->codeword_p); \
-  dict_append_cell(d, (cell)x); \
+#define ADD(x) dict_append_cell(d, (cell)&&x);
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
   dict_append_word(d, &quit);
-  VAL(DOCOL)
-  CWP(INTERPRET)
-  CWP(BRANCH)
-  VAL(-2) // go back 2 cells
+  ADD(DOCOL)
+  ADD(INTERPRET)
+  ADD(BRANCH)
+  ADD(-2) // go back 2 cells
 
 // : 
   const WordProps colon= {{":", 1}, F_NOTSET};
   dict_append_word(d, &colon);
-  VAL(DOCOL)
-  CWP(WORD)
-  CWP(CREATE)
-  LIT(DOCOL)
-  CWP(COMMA)
-  CWP(RBRAC)
-  VAL(0)
+  ADD(DOCOL)
+  ADD(WORD)
+  ADD(CREATE)
+  ADD(LIT)
+  ADD(DOCOL)
+  ADD(COMMA)
+  ADD(RBRAC)
+  ADD(EXIT)
 
 // ; 
   const WordProps semicolon= {{";", 1}, F_IMMED};
   dict_append_word(d, &semicolon);
-  VAL(DOCOL)
-  LIT(0)
-  CWP(COMMA)
-  CWP(LBRAC)
-  VAL(0)
+  ADD(DOCOL)
+  ADD(LIT)
+  ADD(EXIT)
+  ADD(COMMA)
+  ADD(LBRAC)
+  ADD(EXIT)
 }
