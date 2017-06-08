@@ -73,7 +73,6 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(WORD, "WORD", 4, F_NOTSET)
   ADD_ATOMIC(ZEQU, "0=", 2, F_NOTSET)
 
-
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
   dict_append_word(&d, &quit);
@@ -91,6 +90,7 @@ cell *CWP_##label;                        \
   CWP(LIT)
   COMMA(&&DOCOL)
   CWP(COMMA)
+  CWP(HIDE)
   CWP(RBRAC)
   CWP(EXIT)
 
@@ -101,6 +101,7 @@ cell *CWP_##label;                        \
   CWP(LIT)
   CWP(EXIT)
   CWP(COMMA)
+  CWP(HIDE) 
   CWP(LBRAC)
   CWP(EXIT)
 
