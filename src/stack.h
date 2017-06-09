@@ -26,6 +26,12 @@
 #define PEAK(x, elem)         \
   (elem) = STACK_##x[TOP_##x];\
 
+#define DUMP(x)                            \
+  printf("bottom ---> top\n");             \
+  for (int i = 0; i <= TOP_##x; ++i)       \
+    printf("%lld ", (int64_t)STACK_##x[i]);\
+  printf("\n");                            \
+
 #endif
 
 

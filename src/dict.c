@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-boolean dict_init(Dictionary *d)
+boolean dict_init(Dictionary *d, const char *fn)
 {
   d->here = (cell *)malloc(DICT_INIT_SIZE_CELLS * sizeof(cell));
   if (!d->here) {
@@ -15,6 +15,13 @@ boolean dict_init(Dictionary *d)
   }
   d->latest = NULL;
   d->cells_remaining = DICT_INIT_SIZE_CELLS;
+
+  // open file where we'll write the contents of the dictionary to
+  if ( (d->fp = fopen(fn, "w")) == NULL) {
+    fprintf(stderr, "error opening file %s\n", fn);
+    return FALSE;
+  }
+ 
   return TRUE;
 }
 
@@ -39,6 +46,10 @@ cell *dict_append_word(Dictionary *d, const WordProps *props)
   w.codeword_p = d->here + CELLS_PER_WORD;
 
   d->latest = memcpy(d->here, &w, sizeof(Word));
+  char str[TOK_LEN+1] = {0};
+  memcpy(str, props->tok.buf, props->tok.size);
+  fprintf(d->fp, "%llX:%s\n", (int64_t)d->here, str);
+
   d->here += CELLS_PER_WORD;
   d->cells_remaining -= CELLS_PER_WORD;
   return d->here;
@@ -47,6 +58,8 @@ cell *dict_append_word(Dictionary *d, const WordProps *props)
 void dict_append_cell(Dictionary *d, const cell data)
 {
   *(d->here) = data;
+  fprintf(d->fp, "%llX:%llX\n", (int64_t)d->here, (int64_t)data);
+
   ++d->here;
   --d->cells_remaining;  
 }

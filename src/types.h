@@ -37,6 +37,7 @@ typedef struct Word {
 } Word;
 
 typedef struct {
+  FILE *fp;
   Word *latest;
   cell *here;
   uint64_t cells_remaining;

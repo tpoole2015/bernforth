@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <string.h>
 
-Dictionary d; 
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +20,8 @@ int main(int argc, char *argv[])
   INIT_STACK(RS, cell, STACK_SIZE)
   INIT_STACK(PS, cell, STACK_SIZE)
 
-  if (!dict_init(&d))
+  Dictionary d; 
+  if (!dict_init(&d, ".bernforth_dict"))
     return 1;
 
 #define ADD_ATOMIC(label, buf, len, flags)\
@@ -72,6 +72,7 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(TOCFA, ">CFA", 4, F_NOTSET)
   ADD_ATOMIC(WORD, "WORD", 4, F_NOTSET)
   ADD_ATOMIC(ZEQU, "0=", 2, F_NOTSET)
+  ADD_ATOMIC(PRINTSTACK, ".S", 2, F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -133,6 +134,10 @@ main_loop:
   IP = dict_get_word(&d, &quit.tok)->codeword_p;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+PRINTSTACK:
+  DUMP(PS)
+  NEXT
 
 ADD: // + ( a b -- a+b )
   P(ADD)
@@ -206,7 +211,7 @@ DIVMOD: // ( a b -- a%b a/b )
   POP(PS, b)
   POP(PS, a)
   PUSH(PS, a%b)
-  PUSH(PS, a/b)
+  PUSH(PS, (cell)((int64_t)a/(int64_t)b))
   NEXT
 
 DOCOL:
@@ -306,15 +311,16 @@ get_next_word:
     PROCESS_EOF
   }
 
+  char str[TOK_LEN+1] = {0};
+  memcpy(str, itok.buf, itok.size);
+ 
   boolean islit = FALSE;
   const Word *w = dict_get_word(&d, &itok);
   long int n;
   if (!w) {
     // word not in dictionary
     if (!tok_tonum(&itok, base, &n)) {
-      char str[TOK_LEN+1] = {0};
-      memcpy(str, itok.buf, itok.size);
-      fprintf(stderr, "ERROR: couldn't parse %s\n", str);
+     fprintf(stderr, "ERROR: couldn't parse %s\n", str);
       goto get_next_word;
     }
 
@@ -326,16 +332,18 @@ get_next_word:
   } else {
     // found word in dictionary
     W = w->codeword_p;
-    if (state == EXECUTE || (w->props.flags & F_IMMED))
+    if (state == EXECUTE || (w->props.flags & F_IMMED)) {
+      if (state == COMPILE) fprintf(d.fp, "%s\n", str);
       goto *(void*)*W; // word has to be executed immediately
+    }
   }
 
   P(COMPILING)
   if (islit) {
-    CWP(LIT)
-    COMMA(n)
+    fprintf(d.fp, "LIT ");     CWP(LIT)
+    fprintf(d.fp, "%lld ", (int64_t)n); COMMA(n)
   } else {
-    COMMA(W)
+    fprintf(d.fp, "%s ", str); COMMA(W)
   }
 
   NEXT
