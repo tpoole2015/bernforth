@@ -73,6 +73,9 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(WORD, "WORD", 4, F_NOTSET)
   ADD_ATOMIC(ZEQU, "0=", 2, F_NOTSET)
   ADD_ATOMIC(PRINTSTACK, ".S", 2, F_NOTSET)
+  ADD_ATOMIC(LT, "<", 1, F_NOTSET)
+  ADD_ATOMIC(EQ, "=", 1, F_NOTSET)
+  ADD_ATOMIC(KEY, "KEY", 3, F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -134,6 +137,40 @@ main_loop:
   IP = dict_get_word(&d, &quit.tok)->codeword_p;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+KEY: // ( -- char )
+  P(KEY)
+{
+  const char c = fgetc(fp);
+  if (c == EOF) {
+    PROCESS_EOF 
+  }
+  PUSH(PS, (cell)c)
+}
+  NEXT
+
+DSP: // ( -- DSP )
+  P(DSP@)
+{
+  cell *sp;
+  DSP@(PS, sp)
+  PUSH(PS, sp)
+}
+  NEXT
+
+EQ: // ( a b -- a==b )
+  P(EQ)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, (cell)(a==b))
+  NEXT
+
+LT: // < ( a b -- a<b)
+  P(LT)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, (cell)(a<b))
+  NEXT
 
 PRINTSTACK:
   DUMP(PS)

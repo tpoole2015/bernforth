@@ -8,8 +8,8 @@
   const int SIZE_##x = (size);   \
   int TOP_##x = -1;              \
 
-#define GET_ADDRESS_STACK(x, ptr)\
-  ptr = (STACK_##x);             \
+#define DSP@(x, ptr)        \
+  ptr = STACK_##x + TOP_##X;\
 
 #define PUSH(x, elem)                                \
   if (TOP_##x == SIZE_##x - 1)                       \
@@ -27,7 +27,6 @@
   (elem) = STACK_##x[TOP_##x];\
 
 #define DUMP(x)                            \
-  printf("bottom ---> top\n");             \
   for (int i = 0; i <= TOP_##x; ++i)       \
     printf("%lld ", (int64_t)STACK_##x[i]);\
   printf("\n");                            \
