@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
   cell a, b; // temporary registers
   cell *W; // working register
   cell *IP; // interpreter pointer
-  unsigned int base = 10;
+  cell base = 10;
   interpreter_state state = EXECUTE; 
 
 #define STACK_SIZE 100
@@ -43,7 +43,6 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(CHAR, "CHAR", 4, F_NOTSET)
   ADD_ATOMIC(CREATE, "CREATE", 6, F_NOTSET)
   ADD_ATOMIC(COMMA, ",", 1, F_NOTSET)
-  ADD_ATOMIC(DECIMAL, "DECIMAL", 7, F_NOTSET)
   ADD_ATOMIC(DIVMOD, "/MOD", 4, F_NOTSET)
   ADD_ATOMIC(DOCOL, "DOCOL", 5, F_NOTSET)
   ADD_ATOMIC(DOT, ".", 1, F_NOTSET)
@@ -55,7 +54,6 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(FIND, "FIND", 4, F_NOTSET)
   ADD_ATOMIC(GT, ">", 1, F_NOTSET)
   ADD_ATOMIC(HERE, "HERE", 4, F_NOTSET)
-  ADD_ATOMIC(HEX, "HEX", 3, F_NOTSET)
   ADD_ATOMIC(HIDE, "HIDE", 4, F_NOTSET)
   ADD_ATOMIC(HIDDEN, "HIDDEN", 6, F_NOTSET)
   ADD_ATOMIC(IMMEDIATE, "IMMEDIATE", 9, F_IMMED)
@@ -76,6 +74,7 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(LT, "<", 1, F_NOTSET)
   ADD_ATOMIC(EQ, "=", 1, F_NOTSET)
   ADD_ATOMIC(KEY, "KEY", 3, F_NOTSET)
+  ADD_ATOMIC(DSPFETCH, "DSP@", 4, F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -149,12 +148,12 @@ KEY: // ( -- char )
 }
   NEXT
 
-DSP: // ( -- DSP )
+DSPFETCH: // DSP@ ( -- DSP )
   P(DSP@)
 {
   cell *sp;
-  DSP@(PS, sp)
-  PUSH(PS, sp)
+  DSPFETCH(PS, sp)
+  PUSH(PS, (cell)sp)
 }
   NEXT
 
@@ -183,9 +182,9 @@ ADD: // + ( a b -- a+b )
   PUSH(PS, a+b)
   NEXT
 
-BASE: // ( -- base ) 
+BASE: // ( -- addr ) 
   P(BASE)
-  PUSH(PS, (cell)base)
+  PUSH(PS, (cell)&base)
   NEXT
 
 BRANCH: // ( -- )
@@ -238,11 +237,6 @@ CREATE: // CREATE ( addr len -- )
 }
   NEXT
 
-DECIMAL: // ( -- )
-  P(DECIMAL)
-  base = 10;
-  NEXT
-
 DIVMOD: // ( a b -- a%b a/b )
   P(DIVMOD)
   POP(PS, b)
@@ -277,7 +271,7 @@ DUP: // ( a -- a a )
 EMIT: // ( char -- )
   P(EMIT)
   POP(PS, a);
-  printf("\t%c\n", (char)a);
+  printf("%c", (char)a);
   NEXT
 
 EXIT:
@@ -316,11 +310,6 @@ HERE: // ( -- addr )
   PUSH(PS, (cell)&(d.here))
   NEXT
 
-HEX: // ( -- )
-  P(HEX)
-  base = 16;
-  NEXT
-
 HIDE: // ( -- )
   P(HIDE)
   d.latest->props.flags ^= F_HIDDEN;
@@ -342,8 +331,8 @@ IMMEDIATE: // ( -- )
 
 INTERPRET: // ( -- )
   P(INTERPRET)
-{
 get_next_word:
+{
   if (!tok_get_next(fp, &itok)) {
     PROCESS_EOF
   }
@@ -357,7 +346,7 @@ get_next_word:
   if (!w) {
     // word not in dictionary
     if (!tok_tonum(&itok, base, &n)) {
-     fprintf(stderr, "ERROR: couldn't parse %s\n", str);
+      fprintf(stderr, "ERROR: couldn't parse %s\n", str);
       goto get_next_word;
     }
 

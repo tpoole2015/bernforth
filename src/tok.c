@@ -52,8 +52,9 @@ unsigned int tok_get_next(FILE *fp, Token *tok)
       break;
     }
     case WRITING: {
-      if (c == ' ' || c == '\t' || c == '\n')
+      if (c == ' ' || c == '\t' || c == '\n') {
         return tok->size; // finished reading token
+      }
       break;
     }
     };

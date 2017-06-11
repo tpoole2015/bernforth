@@ -8,8 +8,8 @@
   const int SIZE_##x = (size);   \
   int TOP_##x = -1;              \
 
-#define DSP@(x, ptr)        \
-  ptr = STACK_##x + TOP_##X;\
+#define DSPFETCH(x, ptr)    \
+  ptr = STACK_##x + TOP_##x;\
 
 #define PUSH(x, elem)                                \
   if (TOP_##x == SIZE_##x - 1)                       \
