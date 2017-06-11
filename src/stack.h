@@ -8,7 +8,10 @@
   const int SIZE_##x = (size);   \
   int TOP_##x = -1;              \
 
-#define DSPFETCH(x, ptr)    \
+#define DSPTOP(x, ptr)\
+  ptr = STACK_##x;    \
+
+#define DSPBOT(x, ptr)      \
   ptr = STACK_##x + TOP_##x;\
 
 #define PUSH(x, elem)                                \
@@ -25,11 +28,6 @@
 
 #define PEAK(x, elem)         \
   (elem) = STACK_##x[TOP_##x];\
-
-#define DUMP(x)                            \
-  for (int i = 0; i <= TOP_##x; ++i)       \
-    printf("%lld ", (int64_t)STACK_##x[i]);\
-  printf("\n");                            \
 
 #endif
 

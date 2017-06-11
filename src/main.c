@@ -39,7 +39,6 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(BASE, "BASE", 4, F_NOTSET)
   ADD_ATOMIC(BRANCH, "BRANCH", 6, F_NOTSET)
   ADD_ATOMIC(BRANCHCOND, "0BRANCH", 7, F_NOTSET)
-  ADD_ATOMIC(CELLSIZE, "CELLSIZE", 8, F_NOTSET)
   ADD_ATOMIC(CHAR, "CHAR", 4, F_NOTSET)
   ADD_ATOMIC(CREATE, "CREATE", 6, F_NOTSET)
   ADD_ATOMIC(COMMA, ",", 1, F_NOTSET)
@@ -52,7 +51,6 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(EXIT, "EXIT", 4, F_NOTSET)
   ADD_ATOMIC(FETCH, "@", 1, F_NOTSET)
   ADD_ATOMIC(FIND, "FIND", 4, F_NOTSET)
-  ADD_ATOMIC(GT, ">", 1, F_NOTSET)
   ADD_ATOMIC(HERE, "HERE", 4, F_NOTSET)
   ADD_ATOMIC(HIDE, "HIDE", 4, F_NOTSET)
   ADD_ATOMIC(HIDDEN, "HIDDEN", 6, F_NOTSET)
@@ -70,11 +68,14 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(TOCFA, ">CFA", 4, F_NOTSET)
   ADD_ATOMIC(WORD, "WORD", 4, F_NOTSET)
   ADD_ATOMIC(ZEQU, "0=", 2, F_NOTSET)
-  ADD_ATOMIC(PRINTSTACK, ".S", 2, F_NOTSET)
+  ADD_ATOMIC(GT, ">", 1, F_NOTSET)
+  ADD_ATOMIC(GTEQ, ">=", 2, F_NOTSET)
   ADD_ATOMIC(LT, "<", 1, F_NOTSET)
+  ADD_ATOMIC(LTEQ, "<=", 2, F_NOTSET)
   ADD_ATOMIC(EQ, "=", 1, F_NOTSET)
   ADD_ATOMIC(KEY, "KEY", 3, F_NOTSET)
-  ADD_ATOMIC(DSPFETCH, "DSP@", 4, F_NOTSET)
+  ADD_ATOMIC(DSPBOT, "DSP@", 4, F_NOTSET)
+  ADD_ATOMIC(DSPTOP, "DSP0", 4, F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -137,6 +138,20 @@ main_loop:
   W = IP;
   goto *(void*)(*(cell*)W);
 
+LTEQ: // <= ( a b -- a<=b)
+  P(GT)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, (cell)(a<=b))
+  NEXT
+
+GTEQ: // >= ( a b -- a>=b)
+  P(GT)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, (cell)(a>=b))
+  NEXT
+
 KEY: // ( -- char )
   P(KEY)
 {
@@ -148,11 +163,20 @@ KEY: // ( -- char )
 }
   NEXT
 
-DSPFETCH: // DSP@ ( -- DSP )
+DSPTOP: // DSP0 ( -- addr )
+  P(DSP0)
+{
+  cell *sp;
+  DSPTOP(PS, sp)
+  PUSH(PS, (cell)sp)
+}
+  NEXT
+
+DSPBOT: // DSP@ ( -- addr )
   P(DSP@)
 {
   cell *sp;
-  DSPFETCH(PS, sp)
+  DSPBOT(PS, sp)
   PUSH(PS, (cell)sp)
 }
   NEXT
@@ -169,10 +193,6 @@ LT: // < ( a b -- a<b)
   POP(PS, b)
   POP(PS, a)
   PUSH(PS, (cell)(a<b))
-  NEXT
-
-PRINTSTACK:
-  DUMP(PS)
   NEXT
 
 ADD: // + ( a b -- a+b )
@@ -206,11 +226,6 @@ BRANCHCOND: // 0BRANCH ( a -- )
   IP += a ? 1 /* skip offset */ : *IP;
   NEXT
 
-CELLSIZE: // ( -- sizeof(cell))
-  P(CELLSIZE)
-  PUSH(PS, (cell)sizeof(cell));
-  NEXT
-
 CHAR: // ( -- char) word
   P(CHAR)
   if (!tok_get_next(fp, &wtok)) {
@@ -242,7 +257,7 @@ DIVMOD: // ( a b -- a%b a/b )
   POP(PS, b)
   POP(PS, a)
   PUSH(PS, a%b)
-  PUSH(PS, (cell)((int64_t)a/(int64_t)b))
+  PUSH(PS, (cell)(a/b))
   NEXT
 
 DOCOL:
@@ -254,7 +269,7 @@ DOCOL:
 DOT: // ( a -- )
   P(DOT)
   POP(PS, a)
-  printf("\t%lld\n", (int64_t)a);
+  printf("\t%lld\n", a);
   NEXT  
 
 DROP: // ( a -- )
@@ -342,7 +357,7 @@ get_next_word:
  
   boolean islit = FALSE;
   const Word *w = dict_get_word(&d, &itok);
-  long int n;
+  int64_t n;
   if (!w) {
     // word not in dictionary
     if (!tok_tonum(&itok, base, &n)) {
@@ -367,7 +382,7 @@ get_next_word:
   P(COMPILING)
   if (islit) {
     fprintf(d.fp, "LIT ");     CWP(LIT)
-    fprintf(d.fp, "%lld ", (int64_t)n); COMMA(n)
+    fprintf(d.fp, "%lld ", n); COMMA(n)
   } else {
     fprintf(d.fp, "%s ", str); COMMA(W)
   }

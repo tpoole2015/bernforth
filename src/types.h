@@ -10,7 +10,7 @@
 #define P(x)
 #endif
 
-typedef uintptr_t cell; // cell has to be large enough to hold the address of any variable
+typedef int64_t cell; // cell has to be large enough to hold the address of any variable
 
 typedef enum {FALSE, TRUE} boolean;
 typedef enum {BLANK, COMMENT, WRITING} read_state;

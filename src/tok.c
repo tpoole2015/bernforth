@@ -20,11 +20,11 @@ boolean tok_cmp(const Token *lhs, const Token *rhs)
   return ((lhs->size == rhs->size) && !memcmp(lhs->buf, rhs->buf, lhs->size)) ? TRUE : FALSE;
 }
 
-boolean tok_tonum(const Token *t, const unsigned int base, long int *n)
+boolean tok_tonum(const Token *t, const unsigned int base, int64_t *n)
 {
   char str[TOK_LEN+1] = {0};
   memcpy(str, t->buf, t->size);
-  const long int x = strtol(str, NULL, base);
+  const int64_t x = strtoll(str, NULL, base);
   if (!x && str[0] != '0')
       return FALSE;
   *n = x;
