@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
   Token itok; // latest token read by INTERPRET
   Token wtok; // latest token read by WORD
-  cell a, b; // temporary registers
+  cell a, b, c; // temporary registers
   cell *W; // working register
   cell *IP; // interpreter pointer
   cell base = 10;
@@ -44,7 +44,6 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(COMMA, ",", 1, F_NOTSET)
   ADD_ATOMIC(DIVMOD, "/MOD", 4, F_NOTSET)
   ADD_ATOMIC(DOCOL, "DOCOL", 5, F_NOTSET)
-  ADD_ATOMIC(DOT, ".", 1, F_NOTSET)
   ADD_ATOMIC(DROP, "DROP", 4, F_NOTSET)
   ADD_ATOMIC(DUP, "DUP", 3, F_NOTSET)
   ADD_ATOMIC(EMIT, "EMIT", 4, F_NOTSET)
@@ -76,6 +75,9 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(KEY, "KEY", 3, F_NOTSET)
   ADD_ATOMIC(DSPBOT, "DSP@", 4, F_NOTSET)
   ADD_ATOMIC(DSPTOP, "DSP0", 4, F_NOTSET)
+  ADD_ATOMIC(ROT, "ROT", 3, F_NOTSET)
+  ADD_ATOMIC(NROT, "-ROT", 4, F_NOTSET)
+  ADD_ATOMIC(AND, "AND", 3, F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -137,6 +139,33 @@ main_loop:
   IP = dict_get_word(&d, &quit.tok)->codeword_p;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+AND: // ( a b -- a&b )
+  P(AND)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, a&b)
+  NEXT
+
+NROT: // ( c b a -- a c b )
+  P(-ROT)
+  POP(PS, a)
+  POP(PS, b)
+  POP(PS, c)
+  PUSH(PS, a)
+  PUSH(PS, c)
+  PUSH(PS, b)
+  NEXT
+
+ROT : // ( a b c -- b c a )
+  P(ROT)
+  POP(PS, c)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, b)
+  PUSH(PS, c)
+  PUSH(PS, a)
+  NEXT
 
 LTEQ: // <= ( a b -- a<=b)
   P(GT)
@@ -265,12 +294,6 @@ DOCOL:
   PUSH(RS, (cell)IP)
   IP = ++W;
   NEXT
-
-DOT: // ( a -- )
-  P(DOT)
-  POP(PS, a)
-  printf("\t%lld\n", a);
-  NEXT  
 
 DROP: // ( a -- )
   P(DROP)

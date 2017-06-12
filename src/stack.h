@@ -16,13 +16,13 @@
 
 #define PUSH(x, elem)                                \
   if (TOP_##x == SIZE_##x - 1)                       \
-    fprintf(stderr, "ERROR: stack " #x " overflow\n");\
+    fprintf(stderr, "ERROR:" #x " stack overflow\n");\
   else                                               \ 
     STACK_##x[++TOP_##x] = (elem);                   \
 
 #define POP(x, elem)                                  \
   if (TOP_##x < 0)                                    \
-    fprintf(stderr, "ERROR: stack " #x " underflow\n");\
+    fprintf(stderr, "ERROR:" #x " stack underflow\n");\
   else                                                \ 
     (elem) = STACK_##x[TOP_##x--];                    \
 
