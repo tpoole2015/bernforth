@@ -78,6 +78,8 @@ cell *CWP_##label;                        \
   ADD_ATOMIC(ROT, "ROT", 3, F_NOTSET)
   ADD_ATOMIC(NROT, "-ROT", 4, F_NOTSET)
   ADD_ATOMIC(AND, "AND", 3, F_NOTSET)
+  ADD_ATOMIC(STATE, "STATE", 5, F_NOTSET)
+  ADD_ATOMIC(CSTORE, "C!", 2, F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -139,6 +141,21 @@ main_loop:
   IP = dict_get_word(&d, &quit.tok)->codeword_p;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+CSTORE: // ( char addr -- )
+  P(C!)
+  POP(PS, a) // a = addr
+  POP(PS, b) // b = char
+{
+  char * const c = (char*)a;
+  *c = (char)b;
+}
+  NEXT
+
+STATE: // ( -- addr )
+  P(STATE)
+  PUSH(PS, (cell)&state)
+  NEXT
 
 AND: // ( a b -- a&b )
   P(AND)
