@@ -58,7 +58,7 @@ cell *dict_append_word(Dictionary *d, const WordProps *props)
 void dict_append_cell(Dictionary *d, const cell data)
 {
   *(d->here) = data;
-  fprintf(d->fp, "%llX:%llX\n", (int64_t)d->here, (int64_t)data);
+  fprintf(d->fp, "%llX:%lld\n", (int64_t)d->here, (int64_t)data);
 
   ++d->here;
   --d->cells_remaining;  

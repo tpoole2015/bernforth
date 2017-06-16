@@ -4,7 +4,21 @@
 #include "stack.h"
 #include <stdint.h>
 #include <string.h>
+#include <unistd.h>
 
+#define STACK_SIZE 100
+
+Dictionary d; 
+#define ADD_ATOMIC(label, buf, flags)\
+cell *CWP_##label;                        \
+{                                         \
+  const WordProps p = {{buf, sizeof(buf)-1}, flags};\
+  CWP_##label = dict_append_word(&d, &p); \
+  dict_append_cell(&d, (cell)&&label);    \
+}                                         \
+
+#define COMMA(x) dict_append_cell(&d, (cell)x);
+#define CWP(x) dict_append_cell(&d, (cell)CWP_##x);
 
 int main(int argc, char *argv[])
 {
@@ -14,72 +28,64 @@ int main(int argc, char *argv[])
   cell *W; // working register
   cell *IP; // interpreter pointer
   cell base = 10;
-  interpreter_state state = EXECUTE; 
+  cell state = EXECUTE; 
 
-#define STACK_SIZE 100
   INIT_STACK(RS, cell, STACK_SIZE)
   INIT_STACK(PS, cell, STACK_SIZE)
 
-  Dictionary d; 
   if (!dict_init(&d, ".bernforth_dict"))
     return 1;
 
-#define ADD_ATOMIC(label, buf, len, flags)\
-cell *CWP_##label;                        \
-{                                         \
-  const WordProps p = {{buf, len}, flags};\
-  CWP_##label = dict_append_word(&d, &p); \
-  dict_append_cell(&d, (cell)&&label);    \
-}                                         \
-
-#define COMMA(x) dict_append_cell(&d, (cell)x);
-#define CWP(x) dict_append_cell(&d, (cell)CWP_##x);
-
-  ADD_ATOMIC(ADD, "+", 1, F_NOTSET)
-  ADD_ATOMIC(BASE, "BASE", 4, F_NOTSET)
-  ADD_ATOMIC(BRANCH, "BRANCH", 6, F_NOTSET)
-  ADD_ATOMIC(BRANCHCOND, "0BRANCH", 7, F_NOTSET)
-  ADD_ATOMIC(CHAR, "CHAR", 4, F_NOTSET)
-  ADD_ATOMIC(CREATE, "CREATE", 6, F_NOTSET)
-  ADD_ATOMIC(COMMA, ",", 1, F_NOTSET)
-  ADD_ATOMIC(DIVMOD, "/MOD", 4, F_NOTSET)
-  ADD_ATOMIC(DOCOL, "DOCOL", 5, F_NOTSET)
-  ADD_ATOMIC(DROP, "DROP", 4, F_NOTSET)
-  ADD_ATOMIC(DUP, "DUP", 3, F_NOTSET)
-  ADD_ATOMIC(EMIT, "EMIT", 4, F_NOTSET)
-  ADD_ATOMIC(EXIT, "EXIT", 4, F_NOTSET)
-  ADD_ATOMIC(FETCH, "@", 1, F_NOTSET)
-  ADD_ATOMIC(FIND, "FIND", 4, F_NOTSET)
-  ADD_ATOMIC(HERE, "HERE", 4, F_NOTSET)
-  ADD_ATOMIC(HIDE, "HIDE", 4, F_NOTSET)
-  ADD_ATOMIC(HIDDEN, "HIDDEN", 6, F_NOTSET)
-  ADD_ATOMIC(IMMEDIATE, "IMMEDIATE", 9, F_IMMED)
-  ADD_ATOMIC(INTERPRET, "INTERPRET", 9, F_NOTSET)
-  ADD_ATOMIC(LATEST, "LATEST", 6, F_NOTSET)
-  ADD_ATOMIC(LBRAC, "[", 1, F_IMMED)
-  ADD_ATOMIC(LIT, "LIT", 3, F_NOTSET)
-  ADD_ATOMIC(MUL, "*", 1, F_NOTSET)
-  ADD_ATOMIC(OVER, "OVER", 4, F_NOTSET)
-  ADD_ATOMIC(RBRAC, "]", 1, F_NOTSET)
-  ADD_ATOMIC(STORE, "!", 1, F_NOTSET)
-  ADD_ATOMIC(SUB, "-", 1, F_NOTSET)
-  ADD_ATOMIC(SWAP, "SWAP", 4, F_NOTSET)
-  ADD_ATOMIC(TOCFA, ">CFA", 4, F_NOTSET)
-  ADD_ATOMIC(WORD, "WORD", 4, F_NOTSET)
-  ADD_ATOMIC(ZEQU, "0=", 2, F_NOTSET)
-  ADD_ATOMIC(GT, ">", 1, F_NOTSET)
-  ADD_ATOMIC(GTEQ, ">=", 2, F_NOTSET)
-  ADD_ATOMIC(LT, "<", 1, F_NOTSET)
-  ADD_ATOMIC(LTEQ, "<=", 2, F_NOTSET)
-  ADD_ATOMIC(EQ, "=", 1, F_NOTSET)
-  ADD_ATOMIC(KEY, "KEY", 3, F_NOTSET)
-  ADD_ATOMIC(DSPBOT, "DSP@", 4, F_NOTSET)
-  ADD_ATOMIC(DSPTOP, "DSP0", 4, F_NOTSET)
-  ADD_ATOMIC(ROT, "ROT", 3, F_NOTSET)
-  ADD_ATOMIC(NROT, "-ROT", 4, F_NOTSET)
-  ADD_ATOMIC(AND, "AND", 3, F_NOTSET)
-  ADD_ATOMIC(STATE, "STATE", 5, F_NOTSET)
-  ADD_ATOMIC(CSTORE, "C!", 2, F_NOTSET)
+  ADD_ATOMIC(ADD, "+", F_NOTSET)
+  ADD_ATOMIC(BASE, "BASE", F_NOTSET)
+  ADD_ATOMIC(BRANCH, "BRANCH", F_NOTSET)
+  ADD_ATOMIC(BRANCHCOND, "0BRANCH", F_NOTSET)
+  ADD_ATOMIC(CHAR, "CHAR", F_NOTSET)
+  ADD_ATOMIC(CREATE, "CREATE", F_NOTSET)
+  ADD_ATOMIC(COMMA, ",", F_NOTSET)
+  ADD_ATOMIC(DIVMOD, "/MOD", F_NOTSET)
+  ADD_ATOMIC(DOCOL, "DOCOL", F_NOTSET)
+  ADD_ATOMIC(DROP, "DROP", F_NOTSET)
+  ADD_ATOMIC(DUP, "DUP", F_NOTSET)
+  ADD_ATOMIC(EMIT, "EMIT", F_NOTSET)
+  ADD_ATOMIC(EXIT, "EXIT", F_NOTSET)
+  ADD_ATOMIC(FETCH, "@", F_NOTSET)
+  ADD_ATOMIC(FIND, "FIND", F_NOTSET)
+  ADD_ATOMIC(HERE, "HERE", F_NOTSET)
+  ADD_ATOMIC(HIDE, "HIDE", F_NOTSET)
+  ADD_ATOMIC(HIDDEN, "HIDDEN", F_NOTSET)
+  ADD_ATOMIC(IMMEDIATE, "IMMEDIATE", F_IMMED)
+  ADD_ATOMIC(INTERPRET, "INTERPRET", F_NOTSET)
+  ADD_ATOMIC(LATEST, "LATEST", F_NOTSET)
+  ADD_ATOMIC(LBRAC, "[", F_IMMED)
+  ADD_ATOMIC(LIT, "LIT", F_NOTSET)
+  ADD_ATOMIC(MUL, "*", F_NOTSET)
+  ADD_ATOMIC(OVER, "OVER", F_NOTSET)
+  ADD_ATOMIC(RBRAC, "]", F_NOTSET)
+  ADD_ATOMIC(STORE, "!", F_NOTSET)
+  ADD_ATOMIC(SUB, "-", F_NOTSET)
+  ADD_ATOMIC(SWAP, "SWAP", F_NOTSET)
+  ADD_ATOMIC(TOCFA, ">CFA", F_NOTSET)
+  ADD_ATOMIC(WORD, "WORD", F_NOTSET)
+  ADD_ATOMIC(ZEQU, "0=", F_NOTSET)
+  ADD_ATOMIC(GT, ">", F_NOTSET)
+  ADD_ATOMIC(GTEQ, ">=", F_NOTSET)
+  ADD_ATOMIC(LT, "<", F_NOTSET)
+  ADD_ATOMIC(LTEQ, "<=", F_NOTSET)
+  ADD_ATOMIC(EQ, "=", F_NOTSET)
+  ADD_ATOMIC(KEY, "KEY", F_NOTSET)
+  ADD_ATOMIC(DSPBOT, "DSP@", F_NOTSET)
+  ADD_ATOMIC(DSPTOP, "DSP0", F_NOTSET)
+  ADD_ATOMIC(ROT, "ROT", F_NOTSET)
+  ADD_ATOMIC(NROT, "-ROT", F_NOTSET)
+  ADD_ATOMIC(AND, "AND", F_NOTSET)
+  ADD_ATOMIC(OR, "OR", F_NOTSET)
+  ADD_ATOMIC(INVERT, "INVERT", F_NOTSET)
+  ADD_ATOMIC(STATE, "STATE", F_NOTSET)
+  ADD_ATOMIC(CSTORE, "C!", F_NOTSET)
+  ADD_ATOMIC(TWODUP, "2DUP", F_NOTSET)
+  ADD_ATOMIC(LITSTRING, "LITSTRING", F_NOTSET)
+  ADD_ATOMIC(TELL, "TELL", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -135,12 +141,40 @@ main_loop:
 // Every atomic word implemented has to end in NEXT
 #define NEXT       \
   W = (cell*)*IP++;\
-  goto *(void*)*W;\
+  goto *(void*)*W; \
 
   // Start by running the QUIT word
   IP = dict_get_word(&d, &quit.tok)->codeword_p;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+TELL: // ( addr len -- )
+  P(TELL)
+  POP(PS, a) // a = len
+  POP(PS, b) // b = addr 
+  write(1, (char*)b, a);
+  NEXT
+
+LITSTRING: // ( -- addr len )
+  P(LITSTRING)
+{
+  const uint64_t byte_len = *IP++; // length of string in bytes
+  const uint64_t cell_len = (byte_len + sizeof(cell) - 1)/sizeof(cell); // round up!
+  PUSH(PS, (cell)IP)
+  IP += cell_len;
+  PUSH(PS, (cell)byte_len)
+}
+  NEXT
+
+TWODUP: // 2DUP ( a b -- a b a b )
+  P(2DUP)
+  POP(PS, b) 
+  POP(PS, a) 
+  PUSH(PS, a) 
+  PUSH(PS, b) 
+  PUSH(PS, a) 
+  PUSH(PS, b) 
+  NEXT
 
 CSTORE: // ( char addr -- )
   P(C!)
@@ -155,6 +189,19 @@ CSTORE: // ( char addr -- )
 STATE: // ( -- addr )
   P(STATE)
   PUSH(PS, (cell)&state)
+  NEXT
+
+INVERT: // ( a -- ~a )
+  P(AND)
+  POP(PS, a)
+  PUSH(PS, ~a)
+  NEXT
+
+OR: // ( a b -- a|b )
+  P(AND)
+  POP(PS, b)
+  POP(PS, a)
+  PUSH(PS, a|b)
   NEXT
 
 AND: // ( a b -- a&b )
