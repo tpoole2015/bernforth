@@ -101,9 +101,6 @@ int main(int argc, char *argv[])
   COMMA(&&DOCOL)
   CWP(WORD)
   CWP(CREATE)
-  CWP(LIT)
-  COMMA(&&DOCOL)
-  CWP(COMMA)
   CWP(HIDE)
   CWP(RBRAC)
   CWP(EXIT)
@@ -342,6 +339,7 @@ CREATE: // CREATE ( addr len -- )
   p.flags = F_NOTSET;
   tok_cpy(&p.tok, (char*)b, (unsigned int)a);
   dict_append_word(&d, &p);
+  COMMA(&&DOCOL)
 }
   NEXT
 
