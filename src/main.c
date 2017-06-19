@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
   ADD_ATOMIC(TWODUP, "2DUP", F_NOTSET)
   ADD_ATOMIC(LITSTRING, "LITSTRING", F_NOTSET)
   ADD_ATOMIC(TELL, "TELL", F_NOTSET)
+  ADD_ATOMIC(IDDOT, "ID.", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -144,6 +145,17 @@ main_loop:
   IP = dict_get_word(&d, &quit.tok)->codeword_p;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+IDDOT: // ID. ( addr -- )
+  P(IDDOT)
+  POP(PS, a)
+{
+  const Word *w = (Word *)a;
+  char str[TOK_LEN+1] = {0};
+  memcpy(str, w->props.tok.buf, w->props.tok.size);
+  printf("%s", str);
+}
+  NEXT
 
 TELL: // ( addr len -- )
   P(TELL)
