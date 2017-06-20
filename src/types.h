@@ -17,24 +17,13 @@ typedef enum {BLANK, COMMENT, WRITING} read_state;
 typedef enum {F_NOTSET, F_IMMED = 2, F_HIDDEN = 4} word_flags;
 typedef enum {EXECUTE, COMPILE} interpreter_state;
 
-// unlike C strings Forth strings are not null terminated
-typedef struct {
 #define TOK_LEN 32 
-  char buf[TOK_LEN];
-  unsigned int size;
-} Token;
-
-// properties intrinsic to a Word, irrespective of its position in the Dictionary
-typedef struct {
-  Token tok;
-  unsigned int flags;
-} WordProps;
-
-// DO NOT CHANGE THE ORDER OF FIELDS IN THIS STRUCT
 typedef struct Word {
-  struct Word *prev; 
-  WordProps props;
-  cell *codeword_p;
+  struct Word *prev;
+  char flags;
+  char len;
+// unlike C strings Forth strings are not null terminated
+  char tok[TOK_LEN];
 } Word;
 
 typedef struct {
