@@ -30,9 +30,10 @@ typedef struct {
   unsigned int flags;
 } WordProps;
 
+// DO NOT CHANGE THE ORDER OF FIELDS IN THIS STRUCT
 typedef struct Word {
+  struct Word *prev; 
   WordProps props;
-  struct Word *prev;
   cell *codeword_p;
 } Word;
 

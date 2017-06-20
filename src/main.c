@@ -87,6 +87,8 @@ int main(int argc, char *argv[])
   ADD_ATOMIC(LITSTRING, "LITSTRING", F_NOTSET)
   ADD_ATOMIC(TELL, "TELL", F_NOTSET)
   ADD_ATOMIC(IDDOT, "ID.", F_NOTSET)
+  ADD_ATOMIC(ISHIDDEN, "?HIDDEN", F_NOTSET)
+  ADD_ATOMIC(ISIMMEDIATE, "?IMMEDIATE", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const WordProps quit = {{"QUIT", 4}, F_NOTSET};
@@ -146,8 +148,26 @@ main_loop:
   W = IP;
   goto *(void*)(*(cell*)W);
 
+ISIMMEDIATE: // ?IMMEDIATE ( addr -- )
+  P(?IMMEDIATE)
+  POP(PS, a)
+{
+  const Word *w = (Word *)a;
+  PUSH(PS, (char)w->props.flags & F_IMMEDIATE);
+}
+  NEXT
+
+ISHIDDEN: // ?HIDDEN ( addr -- )
+  P(?HIDDEN)
+  POP(PS, a)
+{
+  const Word *w = (Word *)a;
+  PUSH(PS, (char)w->props.flags & F_HIDDEN);
+}
+  NEXT
+
 IDDOT: // ID. ( addr -- )
-  P(IDDOT)
+  P(ID.)
   POP(PS, a)
 {
   const Word *w = (Word *)a;
