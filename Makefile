@@ -2,6 +2,7 @@ CFLAGS=-g
 CC=gcc
 OBJS=src/dict.o\
      src/tok.o\
+     src/mem.o\
      src/main.o\
   
 all: bernforth
