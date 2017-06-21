@@ -17,14 +17,14 @@
 #define PUSH(x, elem)                                \
   if (TOP_##x == SIZE_##x - 1)                       \
     fprintf(stderr, "ERROR:" #x " stack overflow\n");\
-  else                                               \ 
+  else                                               \
     STACK_##x[++TOP_##x] = (elem);                   \
 
 #define POP(x, elem)                                  \
   if (TOP_##x < 0)                                    \
     fprintf(stderr, "ERROR:" #x " stack underflow\n");\
   else                                                \ 
-    (elem) = STACK_##x[TOP_##x--];                    \
+    (elem) = STACK_##x[TOP_##x--];\
 
 #define PEAK(x, elem)         \
   (elem) = STACK_##x[TOP_##x];\

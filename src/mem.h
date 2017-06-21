@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#define GET_FLAGPTR(addr) (char*)(addr + 1)
+
 #define WRITE_BYTE(dst, x)\
   *(char*)dst = (x);\
   dst = (cell*)((char*)dst+1);\

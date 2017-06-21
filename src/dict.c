@@ -52,7 +52,7 @@ cell *dict_append_word(Dictionary *d, const char flags, const Token *tok)
   d->cells_remaining -= (d->here - d->latest);
 
   char str[TOK_LEN+1] = {0};
-  memcpy(str, tok.buf, props->tok.size);
+  memcpy(str, tok->buf, tok->size);
   fprintf(d->fp, "%llX:%s\n", (int64_t)d->here, str);
 
   return d->here;

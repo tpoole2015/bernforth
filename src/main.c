@@ -2,6 +2,7 @@
 #include "dict.h"
 #include "tok.h"
 #include "stack.h"
+#include "mem.h"
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
@@ -12,7 +13,7 @@ Dictionary d;
 #define ADD_ATOMIC(label, buf, flags)\
 cell *CWP_##label;                        \
 {                                         \
-  const Token t = {buf, sizeof(buf)-1};\
+  const Token t = {(char)(sizeof(buf)-1), buf};\
   CWP_##label = dict_append_word(&d, flags, &t); \
   dict_append_cell(&d, (cell)&&label);    \
 }                                         \
@@ -24,6 +25,7 @@ int main(int argc, char *argv[])
 {
   Token itok; // latest token read by INTERPRET
   Token wtok; // latest token read by WORD
+  Word w;     // last word looked up 
   cell a, b, c; // temporary registers
   cell *W; // working register
   cell *IP; // interpreter pointer
@@ -88,7 +90,7 @@ int main(int argc, char *argv[])
   ADD_ATOMIC(TELL, "TELL", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
-  const Token quit = {"QUIT", 4};
+  const Token quit = {4, "QUIT"};
   dict_append_word(&d, F_NOTSET, &quit);
   COMMA(&&DOCOL)
   CWP(INTERPRET)
@@ -96,7 +98,7 @@ int main(int argc, char *argv[])
   COMMA(-2) // go back 2 cells
 
 // : 
-  const Token colon= {":", 1};
+  const Token colon= {1, ":"};
   dict_append_word(&d, F_NOTSET, &colon);
   COMMA(&&DOCOL)
   CWP(WORD)
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
   CWP(EXIT)
 
 // ; 
-  const Token semicolon= {";", 1};
+  const Token semicolon= {1, ";"};
   dict_append_word(&d, F_IMMED, &semicolon);
   COMMA(&&DOCOL)
   CWP(LIT)
@@ -141,9 +143,8 @@ main_loop:
   goto *(void*)*W; \
 
   // Start by running the QUIT word
-  Word w;
-  dict_lookup_word(&d, &quit.tok, &w);
-  IP = w->cwp;
+  dict_lookup_word(&d, &quit, &w);
+  IP = w.cwp;
   W = IP;
   goto *(void*)(*(cell*)W);
 
@@ -394,7 +395,7 @@ FIND: // ( len addr -- addr )
 {
   Token t;
   tok_cpy(&t, (char*)b, (unsigned int)a);
-  PUSH(PS, (cell)(dict_lookup_word(&d, &t)))
+  PUSH(PS, (cell)(dict_lookup_word(&d, &t, &w)))
 }
   NEXT
 
@@ -412,21 +413,27 @@ HERE: // ( -- addr )
 
 HIDE: // ( -- )
   P(HIDE)
-  d.latest->props.flags ^= F_HIDDEN;
+{
+  char *flag_ptr = GET_FLAGPTR(d.latest);
+  *flag_ptr ^= F_HIDDEN;
+}
   NEXT
 
 HIDDEN: // ( addr -- )
   P(HIDDEN)
   POP(PS, a)
 {
-  Word *w = (Word*)a;
-  w->props.flags ^= F_HIDDEN;
+  char *flag_ptr = GET_FLAGPTR((cell*)a);
+  *flag_ptr ^= F_HIDDEN;
 }
   NEXT
 
 IMMEDIATE: // ( -- )
   P(IMMEDIATE)
-  d.latest->props.flags ^= F_IMMED;
+{
+  char *flag_ptr = GET_FLAGPTR(d.latest);
+  *flag_ptr ^= F_IMMED;
+}
   NEXT
 
 INTERPRET: // ( -- )
@@ -443,7 +450,7 @@ get_next_word:
   boolean islit = FALSE;
   Word w;
   int64_t n;
-  if (!dict_lookupword(&d, &itok, &w)) {
+  if (!dict_lookup_word(&d, &itok, &w)) {
     // word not in dictionary
     if (!tok_tonum(&itok, base, &n)) {
       fprintf(stderr, "ERROR: couldn't parse %s\n", str);
@@ -457,8 +464,8 @@ get_next_word:
     }
   } else {
     // found word in dictionary
-    W = w->codeword_p;
-    if (state == EXECUTE || (w->props.flags & F_IMMED)) {
+    W = w.cwp;
+    if (state == EXECUTE || (w.flags & F_IMMED)) {
       if (state == COMPILE) fprintf(d.fp, "%s\n", str);
       goto *(void*)*W; // word has to be executed immediately
     }
@@ -536,7 +543,7 @@ SWAP: // ( a b -- b a )
 TOCFA: // >CFA ( addr -- addr )
   P(TOCFA)
   POP(PS, a)
-  PUSH(PS, (cell)((Word*)a)->codeword_p)
+  PUSH(PS, (cell)(read_word((cell*)a, &w)))
   NEXT
 
 WORD: // ( -- addr len ) word
