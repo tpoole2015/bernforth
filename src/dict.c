@@ -1,5 +1,6 @@
 #include "dict.h"
 #include "tok.h"
+#include "mem.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,33 +26,35 @@ boolean dict_init(Dictionary *d, const char *fn)
   return TRUE;
 }
 
-Word *dict_get_word(const Dictionary *d, const Token *t)
+cell *dict_lookup_word(const Dictionary *d, const Token *t, Word *w)
 {
-  Word *cur = d->latest;
+  cell *cur = d->latest;
   while (cur) {
-    if (!(cur->props.flags & F_HIDDEN) && tok_cmp(t, &(cur->props.tok)))
-      break;
-    cur = cur->prev;
+    w->cwp = read_word(cur, w);
+    if (!(w->flags & F_HIDDEN) && tok_cmp(t, &(w->tok)))
+      return cur;
+    cur = w->prev;
   }
-  return cur;
+  return NULL;
 }
 
-cell *dict_append_word(Dictionary *d, const WordProps *props)
+cell *dict_append_word(Dictionary *d, const char flags, const Token *tok)
 {
 #define CELLS_PER_WORD sizeof(Word)/sizeof(cell)
   assert(d->cells_remaining > CELLS_PER_WORD);
   Word w;
   w.prev = d->latest;
-  w.props = *props;
-  w.codeword_p = d->here + CELLS_PER_WORD;
+  w.flags = flags;
+  w.tok = *tok;
 
-  d->latest = memcpy(d->here, &w, sizeof(Word));
+  d->latest = d->here; 
+  d->here = write_word(d->here, &w);
+  d->cells_remaining -= (d->here - d->latest);
+
   char str[TOK_LEN+1] = {0};
-  memcpy(str, props->tok.buf, props->tok.size);
+  memcpy(str, tok.buf, props->tok.size);
   fprintf(d->fp, "%llX:%s\n", (int64_t)d->here, str);
 
-  d->here += CELLS_PER_WORD;
-  d->cells_remaining -= CELLS_PER_WORD;
   return d->here;
 }
 

@@ -19,6 +19,7 @@ cell ALIGN8(cell x);
 cell *write_bytes(cell *dst, const char *bytes, const int n);
 cell *read_bytes(const cell *src, char *bytes, const int n);
 
+// both functions return the codeword pointer
 cell *write_word(cell *dst, const Word *w); 
 cell *read_word(const cell *src, Word *w);
 

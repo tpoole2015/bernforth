@@ -12,8 +12,8 @@ Dictionary d;
 #define ADD_ATOMIC(label, buf, flags)\
 cell *CWP_##label;                        \
 {                                         \
-  const WordProps p = {{buf, sizeof(buf)-1}, flags};\
-  CWP_##label = dict_append_word(&d, &p); \
+  const Token t = {buf, sizeof(buf)-1};\
+  CWP_##label = dict_append_word(&d, flags, &t); \
   dict_append_cell(&d, (cell)&&label);    \
 }                                         \
 
@@ -86,21 +86,18 @@ int main(int argc, char *argv[])
   ADD_ATOMIC(TWODUP, "2DUP", F_NOTSET)
   ADD_ATOMIC(LITSTRING, "LITSTRING", F_NOTSET)
   ADD_ATOMIC(TELL, "TELL", F_NOTSET)
-  ADD_ATOMIC(IDDOT, "ID.", F_NOTSET)
-  ADD_ATOMIC(ISHIDDEN, "?HIDDEN", F_NOTSET)
-  ADD_ATOMIC(ISIMMEDIATE, "?IMMEDIATE", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
-  const WordProps quit = {{"QUIT", 4}, F_NOTSET};
-  dict_append_word(&d, &quit);
+  const Token quit = {"QUIT", 4};
+  dict_append_word(&d, F_NOTSET, &quit);
   COMMA(&&DOCOL)
   CWP(INTERPRET)
   CWP(BRANCH)
   COMMA(-2) // go back 2 cells
 
 // : 
-  const WordProps colon= {{":", 1}, F_NOTSET};
-  dict_append_word(&d, &colon);
+  const Token colon= {":", 1};
+  dict_append_word(&d, F_NOTSET, &colon);
   COMMA(&&DOCOL)
   CWP(WORD)
   CWP(CREATE)
@@ -109,8 +106,8 @@ int main(int argc, char *argv[])
   CWP(EXIT)
 
 // ; 
-  const WordProps semicolon= {{";", 1}, F_IMMED};
-  dict_append_word(&d, &semicolon);
+  const Token semicolon= {";", 1};
+  dict_append_word(&d, F_IMMED, &semicolon);
   COMMA(&&DOCOL)
   CWP(LIT)
   CWP(EXIT)
@@ -144,38 +141,11 @@ main_loop:
   goto *(void*)*W; \
 
   // Start by running the QUIT word
-  IP = dict_get_word(&d, &quit.tok)->codeword_p;
+  Word w;
+  dict_lookup_word(&d, &quit.tok, &w);
+  IP = w->cwp;
   W = IP;
   goto *(void*)(*(cell*)W);
-
-ISIMMEDIATE: // ?IMMEDIATE ( addr -- )
-  P(?IMMEDIATE)
-  POP(PS, a)
-{
-  const Word *w = (Word *)a;
-  PUSH(PS, (char)w->props.flags & F_IMMEDIATE);
-}
-  NEXT
-
-ISHIDDEN: // ?HIDDEN ( addr -- )
-  P(?HIDDEN)
-  POP(PS, a)
-{
-  const Word *w = (Word *)a;
-  PUSH(PS, (char)w->props.flags & F_HIDDEN);
-}
-  NEXT
-
-IDDOT: // ID. ( addr -- )
-  P(ID.)
-  POP(PS, a)
-{
-  const Word *w = (Word *)a;
-  char str[TOK_LEN+1] = {0};
-  memcpy(str, w->props.tok.buf, w->props.tok.size);
-  printf("%s", str);
-}
-  NEXT
 
 TELL: // ( addr len -- )
   P(TELL)
@@ -367,10 +337,9 @@ CREATE: // CREATE ( addr len -- )
   POP(PS, a) // a = len
   POP(PS, b) // b = address
 {
-  WordProps p;
-  p.flags = F_NOTSET;
-  tok_cpy(&p.tok, (char*)b, (unsigned int)a);
-  dict_append_word(&d, &p);
+  Token tok;
+  tok_cpy(&tok, (char*)b, (unsigned int)a);
+  dict_append_word(&d, F_NOTSET, &tok);
   COMMA(&&DOCOL)
 }
   NEXT
@@ -425,8 +394,7 @@ FIND: // ( len addr -- addr )
 {
   Token t;
   tok_cpy(&t, (char*)b, (unsigned int)a);
-  const Word *w = dict_get_word(&d, &t);
-  PUSH(PS, (cell)w)
+  PUSH(PS, (cell)(dict_lookup_word(&d, &t)))
 }
   NEXT
 
@@ -473,9 +441,9 @@ get_next_word:
   memcpy(str, itok.buf, itok.size);
  
   boolean islit = FALSE;
-  const Word *w = dict_get_word(&d, &itok);
+  Word w;
   int64_t n;
-  if (!w) {
+  if (!dict_lookupword(&d, &itok, &w)) {
     // word not in dictionary
     if (!tok_tonum(&itok, base, &n)) {
       fprintf(stderr, "ERROR: couldn't parse %s\n", str);

@@ -34,8 +34,8 @@ cell *write_word(cell *dst, const Word *w)
 {
   WRITE_CELL(dst, (cell)w->prev)
   WRITE_BYTE(dst, w->flags)
-  WRITE_BYTE(dst, w->len)
-  dst = write_bytes(dst, w->tok, (int)w->len);
+  WRITE_BYTE(dst, w->tok.size)
+  dst = write_bytes(dst, w->tok.buf, (int)w->tok.size);
   return (cell*)ALIGN8((cell)dst);
 }
 
@@ -43,9 +43,9 @@ cell *read_word(const cell *src, Word *w)
 {
   cell c;
   READ_CELL(src, c)
-  w->prev = (Word*)c;
+  w->prev = (cell*)c;
   READ_BYTE(src, w->flags)
-  READ_BYTE(src, w->len)
-  src = read_bytes(src, (char*)w->tok, (int)w->len);
+  READ_BYTE(src, w->tok.size)
+  src = read_bytes(src, (char*)w->tok.buf, (int)w->tok.size);
   return (cell*)ALIGN8((cell)src);
 }

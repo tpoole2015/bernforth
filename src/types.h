@@ -18,17 +18,22 @@ typedef enum {F_NOTSET, F_IMMED = 2, F_HIDDEN = 4} word_flags;
 typedef enum {EXECUTE, COMPILE} interpreter_state;
 
 #define TOK_LEN 32 
-typedef struct Word {
-  struct Word *prev;
-  char flags;
-  char len;
+typedef struct {
+  char size;
 // unlike C strings Forth strings are not null terminated
-  char tok[TOK_LEN];
+  char buf[TOK_LEN];
+} Token; 
+
+typedef struct Word {
+  cell *prev;
+  cell *cwp;
+  char flags;
+  Token tok;
 } Word;
 
 typedef struct {
   FILE *fp;
-  Word *latest;
+  cell *latest;
   cell *here;
   uint64_t cells_remaining;
 } Dictionary;
