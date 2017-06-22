@@ -91,6 +91,8 @@ int main(int argc, char *argv[])
   ADD_ATOMIC(TELL, "TELL", F_NOTSET)
   ADD_ATOMIC(FIMMED, "F_IMMED", F_NOTSET)
   ADD_ATOMIC(FHIDDEN, "F_HIDDEN", F_NOTSET)
+  ADD_ATOMIC(TOR, ">R", F_NOTSET)
+  ADD_ATOMIC(FROMR, "R>", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const Token quit = {4, "QUIT"};
@@ -150,6 +152,18 @@ main_loop:
   IP = w.cwp;
   W = IP;
   goto *(void*)(*(cell*)W);
+
+TOR: // ( n -- )  RS: ( -- n )
+  P(>R)
+  POP(PS, a) 
+  PUSH(RS, a)
+  NEXT
+
+FROMR: // ( -- n )  RS: ( n --  )
+  P(R>)
+  POP(RS, a)
+  PUSH(PS, a)
+  NEXT
 
 FIMMED: // ( -- )
   P(FIMMED)
