@@ -1,4 +1,4 @@
-CFLAGS=-g 
+CFLAGS=
 CC=gcc
 OBJS=src/dict.o\
      src/tok.o\

@@ -85,9 +85,12 @@ int main(int argc, char *argv[])
   ADD_ATOMIC(INVERT, "INVERT", F_NOTSET)
   ADD_ATOMIC(STATE, "STATE", F_NOTSET)
   ADD_ATOMIC(CSTORE, "C!", F_NOTSET)
+  ADD_ATOMIC(CFETCH, "C@", F_NOTSET)
   ADD_ATOMIC(TWODUP, "2DUP", F_NOTSET)
   ADD_ATOMIC(LITSTRING, "LITSTRING", F_NOTSET)
   ADD_ATOMIC(TELL, "TELL", F_NOTSET)
+  ADD_ATOMIC(FIMMED, "F_IMMED", F_NOTSET)
+  ADD_ATOMIC(FHIDDEN, "F_HIDDEN", F_NOTSET)
 
 // : QUIT INTERPRET BRANCH -2 ;
   const Token quit = {4, "QUIT"};
@@ -148,6 +151,16 @@ main_loop:
   W = IP;
   goto *(void*)(*(cell*)W);
 
+FIMMED: // ( -- )
+  P(FIMMED)
+  PUSH(PS, (cell)F_IMMED)
+  NEXT
+
+FHIDDEN: // ( -- )
+  P(FHIDDEN)
+  PUSH(PS, (cell)F_HIDDEN)
+  NEXT
+
 TELL: // ( addr len -- )
   P(TELL)
   POP(PS, a) // a = len
@@ -159,9 +172,8 @@ LITSTRING: // ( -- addr len )
   P(LITSTRING)
 {
   const uint64_t byte_len = *IP++; // length of string in bytes
-  const uint64_t cell_len = (byte_len + sizeof(cell) - 1)/sizeof(cell); // round up!
   PUSH(PS, (cell)IP)
-  IP += cell_len;
+  IP += ALIGN8(byte_len);
   PUSH(PS, (cell)byte_len)
 }
   NEXT
@@ -176,7 +188,16 @@ TWODUP: // 2DUP ( a b -- a b a b )
   PUSH(PS, b) 
   NEXT
 
-CSTORE: // ( char addr -- )
+CFETCH: // C@ ( addr -- char )
+  P(C@)
+  POP(PS, a)
+{
+  char * const c = (char*)a;
+  PUSH(PS, (cell)*c)
+}
+  NEXT
+
+CSTORE: // C! ( char addr -- )
   P(C!)
   POP(PS, a) // a = addr
   POP(PS, b) // b = char
@@ -373,7 +394,7 @@ DUP: // ( a -- a a )
 EMIT: // ( char -- )
   P(EMIT)
   POP(PS, a);
-  printf("%c", (char)a);
+  write(1, (char*)&a, 1);
   NEXT
 
 EXIT:
