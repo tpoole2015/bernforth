@@ -102,27 +102,6 @@ int main(int argc, char *argv[])
   CWP(BRANCH)
   COMMA(-2) // go back 2 cells
 
-// : 
-  const Token colon= {1, ":"};
-  dict_append_word(&d, F_NOTSET, &colon);
-  COMMA(&&DOCOL)
-  CWP(WORD)
-  CWP(CREATE)
-  CWP(HIDE)
-  CWP(RBRAC)
-  CWP(EXIT)
-
-// ; 
-  const Token semicolon= {1, ";"};
-  dict_append_word(&d, F_IMMED, &semicolon);
-  COMMA(&&DOCOL)
-  CWP(LIT)
-  CWP(EXIT)
-  CWP(COMMA)
-  CWP(HIDE) 
-  CWP(LBRAC)
-  CWP(EXIT)
-
   FILE *fp = stdin;
   if (argc > 1) {
     if ( (fp = fopen(argv[1], "r")) == NULL) {
